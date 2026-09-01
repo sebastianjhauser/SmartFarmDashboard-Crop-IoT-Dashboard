@@ -1,0 +1,17 @@
+{
+  "name": "smartfarm-backend",
+  "version": "1.0.0",
+  "description": "SmartFarm Crop IoT Dashboard - Express + SQLite backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1"
+  },
+  "license": "ISC",
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true
+  }
+}

@@ -1,0 +1,70 @@
+body {
+  font-family: sans-serif;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: #000000;
+}
+
+h1, h2 {
+  margin-top: 1.5rem;
+}
+
+label {
+  font-weight: bold;
+}
+
+input, select, textarea {
+  display: block;
+  margin: 0.25rem 0 1rem;
+  padding: 0.4rem;
+  width: 100%;
+  max-width: 300px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+ul {
+  padding-left: 1rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* one crop card in the dashboard list */
+.crop-card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.crop-card-actions {
+  margin-top: 0.5rem;
+}
+
+.farm-status {
+  font-weight: bold;
+}
+
+.error-banner,
+.form-error {
+  font-weight: bold;
+}
+
+.crop-name-readonly {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* one reading row inside Sensor History */
+.sensor-history-row {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}

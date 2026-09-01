@@ -163,5 +163,6 @@ A decision I made was having the calculateFarmStatus function take three argumen
 
 ## One Project Limitation
 
-Because the app uses a single page and not multiple different pages for `add`, `edit`, and `history` if the site is refreshed while mid-edit or viewing Sensor History the site defaults back to the dashboard view instead of staying on their original screen.#   S m a r t F a r m D a s h b o a r d - C r o p - I o T - D a s h b o a r d  
+Because the app uses a single page and not multiple different pages for `add`, `edit`, and `history` if the site is refreshed while mid-edit or viewing Sensor History the site defaults back to the dashboard view instead of staying on their original screen.#   S m a r t F a r m D a s h b o a r d - C r o p - I o T - D a s h b o a r d 
+ 
  

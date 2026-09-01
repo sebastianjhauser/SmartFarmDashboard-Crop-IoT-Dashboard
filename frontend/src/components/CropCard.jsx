@@ -1,0 +1,52 @@
+import { formatWater } from '../utils/analysis.js';
+
+//one dashboard card. `result` is the object analyseCrop() already produced for
+//this crop (or null if there's no sensor data available yet) - this
+//component never calls analyseCrop itself, so every card and Sensor History
+//always agree with each other.
+
+function CropCard({ crop, result, onEdit, onDelete, onViewHistory }) {
+  function handleDelete() {
+    const confirmed = window.confirm(`Delete the ${crop.crop_name} crop card? This will not affect the sensor data.`);
+    if (confirmed) {
+      onDelete(crop);
+    }
+  }
+
+  return (
+    <div className="crop-card">
+      <h2>{crop.crop_name} - {crop.location}</h2>
+      <p>
+        Target moisture: {crop.target_min}% - {crop.target_max}% | Normal water: {crop.normal_water} L
+      </p>
+      {crop.notes && <p>Notes: {crop.notes}</p>}
+
+      {result ? (
+        <>
+          <p>Latest: {result.latest_reading.timestamp}</p>
+          <p>
+            Moisture: {result.latest_reading.soil_moisture}% &nbsp;
+            Temperature: {result.latest_reading.temperature}C &nbsp;
+            Rainfall: {result.latest_reading.rainfall}mm
+          </p>
+          <p>
+            Condition: {result.condition}
+            &nbsp; Recommended: {formatWater(result.recommended_water)}
+          </p>
+          {result.alerts.length > 0 && <p>Alert: {result.alerts.join(', ')}</p>}
+          <p>Action: {result.action}</p>
+        </>
+      ) : (
+        <p>Sensor data unavailable (N/A)</p>
+      )}
+
+      <div className="crop-card-actions">
+        <button onClick={() => onEdit(crop)}>Edit</button>
+        <button onClick={handleDelete}>Delete</button>
+        <button onClick={() => onViewHistory(crop)}>View Sensor History</button>
+      </div>
+    </div>
+  );
+}
+
+export default CropCard;
