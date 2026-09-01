@@ -134,7 +134,7 @@ I Checked the whole file for 20 objects, 5 per crop, correct fields/types, all t
 Claude was utilised in collaboration throughout all stages of development such as:
 - Explaining concepts.
 - Review of code and core logic.
-- Architecture and file structure.
+- Architecture and file structure (e.g. spliting functionality spechalised files ).
 - General syntax and formating.
 - Project set up, starter code, refactoring, and debugging code.
 - Backend and frontend guidance.
