@@ -48,9 +48,9 @@ In the project there are two independent data sources:
 1. **Crop Cards** - Stored in SQLite `crops.db`
 2. **Sensor readings** - Stored in `sensor-readings.json`
 
-**`crops.db`** is user controled and managed using Create, Read, Update, and Delete routes through the backend.
+**`crops.db`** is user controlled and managed using Create, Read, Update, and Delete routes through the backend.
 
-**`sensor-readings.json`** is a read-only json file used to store the demo sensor readings and cannot be altered by any means through the app, meaning unlike the SQLite crops table, there is no Create, Update, and Delete routes. However, `GET /api/readings` re-reads the file on every request so when refreshing the sensor data any changes are updated and displayed. This is to simulate how real sensor data would be handled and allows for testing using differnt sensor data to show live updates, etc.
+**`sensor-readings.json`** is a read-only json file used to store the demo sensor readings and cannot be altered by any means through the app, meaning unlike the SQLite crops table, there is no Create, Update, and Delete routes. However, `GET /api/readings` re-reads the file on every request so when refreshing the sensor data any changes are updated and displayed. This is to simulate how real sensor data would be handled and allows for testing using different sensor data to show live updates, etc.
 
 **Dashboard results**
 - condition
@@ -71,7 +71,7 @@ The same rule is enforced on write. The `UNIQUE` constraint on `crop_name` in `c
 
 ## Latest Timestamp Selection
 
-As brefly mentioned in `Crop Name Matching`, `getLatestReading` filters all sensor readings down to an exact `crop_name` match returns the one with the greatest `timestamp`. The greatest timestamp is found using a plain string comparison as all timestamps use the same fixed-width `YYYY-MM-DDTHH:mm:ss` format.
+As briefly mentioned in `Crop Name Matching`, `getLatestReading` filters all sensor readings down to an exact `crop_name` match returns the one with the greatest `timestamp`. The greatest timestamp is found using a plain string comparison as all timestamps use the same fixed-width `YYYY-MM-DDTHH:mm:ss` format.
 
 The Sensor History view uses the same `crop_name` match and the same string-based timestamp comparison but keeps every matching reading instead of just one sorted by newest first.
 
@@ -80,14 +80,14 @@ The Sensor History view uses the same `crop_name` match and the same string-base
 
 Crop Cards don't store their own condition, `analyseCrop(cropCard, reading)` works it out fresh from the card's settings and its latest sensor reading. Both the dashboard cards and Sensor History call this same function.
 
-The rules are checked in this order with the first match wining:
+The rules are checked in this order with the first match winning:
 - **Sensor Problem** - `sensor_status` is Offline or Faulty. Recommended water is N/A, action is Check sensor. Checked before anything else, even if the numbers would otherwise look fine.
 - **Invalid Data** - the reading is Online but `soil_moisture`/`temperature`/`rainfall` is outside its normal business range (0-100 / 0-50 / 0-50). Recommended water is N/A, action is Check reading.
 - **Dry** - `soil_moisture < target_min`. Recommended water is the card's `normal_water`, action is Water crop.
 - **Healthy** - `soil_moisture` is between `target_min` and `target_max` inclusive. Recommended water is 0L, action is Monitor.
 - **Too Wet** - `soil_moisture > target_max`. Recommended water is 0L, action is Stop watering.
 
-And for valid online readings there are two extra alearts that can be added:
+And for valid online readings there are two extra alerts that can be added:
 - **High temperature** (temperature above 35C) and
 - **Rain detected** (rainfall 5mm or more)
 
@@ -134,7 +134,7 @@ I Checked the whole file for 20 objects, 5 per crop, correct fields/types, all t
 Claude was utilised in collaboration throughout all stages of development such as:
 - Explaining concepts.
 - Review of code and core logic.
-- Architecture and file structure (e.g. spliting functionality spechalised files ).
+- Architecture and file structure (e.g. splitting functionality specialised files ).
 - General syntax and formating.
 - Project set up, starter code, refactoring, and debugging code.
 - Backend and frontend guidance.
@@ -148,10 +148,10 @@ Claude was utilised in collaboration throughout all stages of development such a
 - Tested the all fields and values against specifications.
 - Audited codebase against each section of the specifications.
 - Wrote core functions and logic.
-- Manually checked and reviewed everything altered, refactored, generated or otherwise touched by AI to ensure best coding practices, no reduanant/incorrect/overengineered code, and to ensure functionality against specifications.
+- Manually checked and reviewed everything altered, refactored, generated or otherwise touched by AI to ensure best coding practices, no redundant/incorrect/overengineered code, and to ensure functionality against specifications.
 - Ran the app through the full business flow in browser.
-- Made decisions where specifications left gaps, was unclear or ambigus.
-- Manualy checked generated sensor data.
+- Made decisions where specifications left gaps, was unclear or ambiguous.
+- Manually checked generated sensor data.
 
 **ADD AFTER TESTING**
 - Verified API error responses using `curl`              ###required JSON shape and messages with, including the 500 case by feeding it a deliberately corrupted sensor file###.
