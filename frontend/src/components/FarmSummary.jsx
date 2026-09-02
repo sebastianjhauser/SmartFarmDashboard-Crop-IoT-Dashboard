@@ -10,7 +10,7 @@ function FarmSummary({ farmStatus, cropCount, lastRefresh, onAddClick, onRefresh
     <div>
       <h1>SmartFarm Crop Dashboard</h1>
 
-      <p className="farm-summary-stats">
+      <p>
         <span className="farm-status">Overall Status: {farmStatus}</span>
         {' | '}Crop cards: {cropCount}
         {' | '}Last sensor refresh: {formatLastRefresh(lastRefresh)}

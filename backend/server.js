@@ -21,7 +21,10 @@ app.use((req, res) => {
 });
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(400).json({ error: 'Invalid request' });
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 3001;

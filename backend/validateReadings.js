@@ -147,4 +147,4 @@ function readAndValidateReadings() {
   return { valid: true, readings: data };
 }
 
-module.exports = { readAndValidateReadings, validateReadingsFile };
+module.exports = { readAndValidateReadings };

@@ -23,7 +23,8 @@ function App() {
 
   //edit and view sensor history
   const [singleCropError, setSingleCropError] = useState(null);
-
+  //successful save or delete confirmation
+  const [statusMessage, setStatusMessage] = useState(null);
   //last sensor refresh timestap
   const [lastRefresh, setLastRefresh] = useState('Never');
 
@@ -77,12 +78,14 @@ function App() {
   }
 
   function handleAddClick() {
+    setStatusMessage(null);
     setView('add');
   }
 
   //edit card by id
   function handleEdit(crop) {
     setSingleCropError(null);
+    setStatusMessage(null);
     getCrop(crop.id)
       .then(data => {
         setActiveCrop(data);
@@ -109,13 +112,18 @@ function App() {
   //delete card by id
   function handleDelete(crop) {
     setDeleteError(null);
+    setStatusMessage(null);
     deleteCrop(crop.id)
-      .then(() => loadCrops())
+      .then(() => {
+        setStatusMessage(`${crop.crop_name} crop card deleted. Sensor readings are unchanged.`);
+        loadCrops();
+      })
       .catch(err => setDeleteError(err.message));
   }
 
   //called by CropForm after a successful create or update
-  function handleSaved() {
+  function handleSaved(saved) {
+    setStatusMessage(`${saved.crop_name} crop card ${view === 'edit' ? 'updated' : 'created'}.`);
     loadCrops();
     setView('dashboard');
     setActiveCrop(null);
@@ -169,13 +177,14 @@ function App() {
         addDisabled={readings === null}
       />
 
+      {statusMessage && <p className="status-banner">{statusMessage}</p>}
       {readingsError && <p className="error-banner">Sensor refresh failed: {readingsError}</p>}
       {deleteError && <p className="error-banner">Delete failed: {deleteError}</p>}
       {singleCropError && <p className="error-banner">Could not load crop card: {singleCropError}</p>}
 
       {view === 'dashboard' && (
         crops.length === 0 ? (
-          <p className="empty-state">No Crop Cards yet. Click "Add Crop Card" to create one.</p>
+          <p>No Crop Cards yet. Click "Add Crop Card" to create one.</p>
         ) : (
           <div>
             {crops.map((crop, i) => (

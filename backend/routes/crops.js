@@ -108,14 +108,14 @@ router.post('/', function (req, res) {
       return res.status(400).json({ error: 'crop_name does not exist in sensor data' });
     }
 
-    const existing = db.prepare('SELECT id FROM crops WHERE crop_name = ?').get(body.crop_name);
-    if (existing) {
-      return res.status(409).json({ error: 'crop_name already exists' });
-    }
-
     const fieldError = validateSharedFields(body);
     if (fieldError) {
       return res.status(400).json({ error: fieldError });
+    }
+
+    const existing = db.prepare('SELECT id FROM crops WHERE crop_name = ?').get(body.crop_name);
+    if (existing) {
+      return res.status(409).json({ error: 'crop_name already exists' });
     }
 
     const values = buildCropValues(body);
@@ -149,12 +149,14 @@ router.put('/:id', function (req, res) {
       return res.status(400).json({ error: 'crop_name cannot be changed' });
     }
 
-    const fieldError = validateSharedFields(body);
+    const merged = { ...existing, ...body };
+
+    const fieldError = validateSharedFields(merged);
     if (fieldError) {
       return res.status(400).json({ error: fieldError });
     }
 
-    const values = buildCropValues(body);
+    const values = buildCropValues(merged);
     values.id = req.params.id;
 
     db.prepare(`

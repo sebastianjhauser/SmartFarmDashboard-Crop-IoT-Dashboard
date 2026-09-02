@@ -8,7 +8,7 @@ function SensorHistory({ crop, readings, onClose }) {
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
   return (
-    <div className="sensor-history">
+    <div>
       <h2>Sensor History - {crop.crop_name}</h2>
       <button onClick={onClose}>Back to dashboard</button>
 

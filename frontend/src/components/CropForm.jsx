@@ -110,7 +110,7 @@ function CropForm({ mode, cropToEdit, availableCropNames, onSaved, onCancel }) {
   }
 
   return (
-    <form className="crop-form" onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <h2>{isEditing ? 'Edit Crop Card' : 'Add Crop Card'}</h2>
 
       {error && <p className="form-error">{error}</p>}
