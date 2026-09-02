@@ -1,4 +1,4 @@
-# SmartFarmDashboard-Crop-IoT-Dashboard
+# SmartFarmDashboard-Crop-IoT
 
 ## Installation and Run Steps
 
@@ -41,6 +41,8 @@ Every failed request responds with a single JSON key:
 - id not found -> 404 `{"error":"Crop card not found"}`
 - sensor file structurally invalid -> 500 `{"error":"Sensor data file is invalid"}`
 - unexpected server/DB failure -> 500 `{"error":"Internal server error"}`
+- unknown route -> 404 `{"error":"Not found"}`
+- malformed JSON body -> 400 `{"error":"Invalid request"}`
 
 ## Data Ownership
 
@@ -50,7 +52,7 @@ In the project there are two data sources independent of eachother:
 
 **`crops.db`** is user controlled and managed using Create, Read, Update, and Delete routes through the backend.
 
-**`sensor-readings.json`** is a read-only json file used to store the demo sensor readings and cannot be altered by any means through the app. This means unlike the SQLite database, there is no Create, Update, and Delete routes. However, `GET /api/readings` re-reads the file on every request so when refreshing the sensor data any changes to `sensor-readings.json` are updated and displayed. This simulates how real sensor data would be handled and allows for testing using different sensor data to show live updates, etc.
+**`sensor-readings.json`** is a read-only json file used to store the demo sensor readings and cannot be altered by any means through the app. This means unlike the SQLite database, there are no Create, Update, and Delete routes. However, `GET /api/readings` re-reads the file on every request so when refreshing the sensor data any changes to `sensor-readings.json` are updated and displayed. This simulates how real sensor data would be handled and allows for testing using different sensor data to show live updates, etc.
 
 ## Crop Name Matching
 
@@ -58,11 +60,13 @@ In the project there are two data sources independent of eachother:
 
 `getLatestReading` filters all sensor readings down to a card's exact `crop_name` before picking the latest reading by timestamp.
 
-The same rule is enforced on write. The `UNIQUE` constraint on `crop_name` in `crops.db` and the validation in `POST /api/crops` both check for an existing row with that name before insert, returning `409 {"error": "crop_name already exists"}` if one is found.
+The same rule is enforced on write. The `UNIQUE` constraint on `crop_name` in `crops.db` rejects inserts of duplicate names and the validation in `POST /api/crops` checks for an existing row with that name before insert, returning `409 {"error": "crop_name already exists"}` if one is found.
+
+
 
 ## Latest Timestamp Selection
 
-As briefly mentioned in `Crop Name Matching`, `getLatestReading` filters all sensor readings down to an exact `crop_name` match returns the one with the greatest `timestamp`. The greatest timestamp is found using a plain string comparison as all timestamps use the same fixed-width `YYYY-MM-DDTHH:mm:ss` format.
+As briefly mentioned in `Crop Name Matching`, `getLatestReading` filters all sensor readings down to an exact `crop_name` match and returns the one with the greatest `timestamp`. The greatest timestamp is found using a plain string comparison as all timestamps use the same fixed-width `YYYY-MM-DDTHH:mm:ss` format.
 
 The Sensor History view uses the same `crop_name` match and the same string-based timestamp comparison and is sorted by newest to oldest keeping every matching reading instead of just one.
 
@@ -77,6 +81,8 @@ The rules are checked in this order with the first match winning:
 - **Dry** - `soil_moisture < target_min`. Result: Recommended water is the card's `normal_water`, action is Water crop.
 - **Healthy** - `soil_moisture` is between `target_min` and `target_max` inclusive. Result: Recommended water is 0L, action is Monitor.
 - **Too Wet** - `soil_moisture > target_max`. Result: Recommended water is 0L, action is Stop watering.
+
+Additional checks:
 - **High temperature** - `temperature` is above 35C. Result: adds a High temperature alert without changing recommended water.
 - **Rain detected** - `rainfall` is 5mm or more. Result: adds a Rain detected alert without changing recommended water.
 
@@ -123,20 +129,19 @@ Return only the JSON array. Do not use Markdown or explanation.
 
 ## Checks/Corrections Made to the Sensor JSON
 
-Checked:
+**Checked & Validated:**
 
 - Exactly 20 objects
 - Exactly 5 readings per crop
 - Every object has all 7 required fields with correct types
 - Every timestamp matches `YYYY-MM-DDTHH:mm:ss`, is a real calendar date and is distinct within its crop
 - `sensor_status` is one of Online, Offline, or Faulty
-- The timestamp with the oldest value is not the last entry to confirm order is mixed
+- The timestamp with the newest value is not the last entry to confirm order is mixed
 - Exactly one older reading is valid but has one out-of-range number, and it is Online
-- etc.
 
-Corrections Made:
+**Corrections Made:**
 
-I didn't alter any thing in the actual Sensor JSON, instead I altered the prompt used to genreate Sensor JSON. Changes to the prompt:
+I altered the prompt used to generate Sensor JSON to include the following:
 
 - Added that the out-of-range reading must be Online, not Offline/Faulty, otherwise it displays as Sensor Problem instead of Invalid Data.
 - Added the exact target moisture ranges per crop so the AI knows what counts as Dry/Healthy/Too Wet.
@@ -152,11 +157,12 @@ Claude was utilised in collaboration throughout all stages of development such a
 - Explaining concepts.
 - Review of code and core logic.
 - Architecture and file structure against best practices (e.g. splitting functionality into specialised files and folders).
-- General syntax and formating.
+- General syntax and formatting.
 - Project set up, starter code, code, refactoring, and debugging code.
 - Backend and frontend guidance.
 - Generating sensor-readings using above prompt.
 - Audits for redundant or duplicate code against specifications.
+- Ideation and implmentation of solutions to sections I had trouble with or couldnt figure out (e.g. valid timestamps, etc.)
 - README wording and formatting.
 
 ### What I personally implemented/checked
@@ -169,7 +175,7 @@ Claude was utilised in collaboration throughout all stages of development such a
 - Ran the app through the full business flow.
 - Made decisions where specifications left gaps, was unclear or ambiguous.
 - Manually checked generated sensor data.
-- Verified API error responses using `curl`
+- Verified API error responses using `curl`.
 
 
 ### Decisions I made
@@ -187,7 +193,7 @@ Files:
 
 I decided to do this for readability, to reduce code duplication, and to ensure functionality lives in one place rather than large `server.js` and `App.jsx` files holding routes, UI, and logic all at once.
 
-Additionally, I added two parameters to `calculateFarmStatus`instead of the suggested one to ensure "No Crops" and "Sensor Feed Unavailable" errors surface correctly.
+Additionally, I added two parameters to `calculateFarmStatus`instead of the suggested one to ensure "No Crops" and "Sensor Feed Unavailable" statuses surface correctly.
 
 ## One Project Limitation
 

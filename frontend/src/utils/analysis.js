@@ -33,7 +33,7 @@ export function analyseCrop(cropCard, reading) {
   let recommended_water;
   let action;
 
-  //faulty / offline sensor - overrides all other checks (no recommended water or action)
+  //faulty / offline sensor - overrides other checks
   if (reading.sensor_status === 'Offline' || reading.sensor_status === 'Faulty') {
     condition = 'Sensor Problem';
     recommended_water = 'N/A';
