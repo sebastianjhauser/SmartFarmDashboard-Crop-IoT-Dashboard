@@ -1,8 +1,6 @@
 import { analyseCrop, formatWater } from '../utils/analysis.js';
 
-//shows all 5 read-only readings for one crop, newest first. Each one is run
-//through the same analyseCrop function the dashboard cards use, so the two
-//views can never disagree.
+//sensor readings for a crop (newest to oldest)
 
 function SensorHistory({ crop, readings, onClose }) {
   const cropReadings = readings

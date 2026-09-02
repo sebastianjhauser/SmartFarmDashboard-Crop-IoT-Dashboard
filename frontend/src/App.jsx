@@ -1,34 +1,38 @@
 import { useState, useEffect } from 'react';
-import { getCrops, getReadings, deleteCrop } from './services/api.js';
+import { getCrops, getCrop, getReadings, deleteCrop } from './services/api.js';
 import { getAvailableCropNames, getLatestReading, analyseCrop, calculateFarmStatus } from './utils/analysis.js';
 import FarmSummary from './components/FarmSummary.jsx';
 import CropCard from './components/CropCard.jsx';
 import CropForm from './components/CropForm.jsx';
 import SensorHistory from './components/SensorHistory.jsx';
 
+//orchestrator - manages state and data
+
 function App() {
-  //crop cards (from SQLite via the backend)
+  //crop cards
   const [crops, setCrops] = useState([]);
   const [cropsLoading, setCropsLoading] = useState(true);
   const [cropsError, setCropsError] = useState(null);
 
-  //sensor readings (from the read-only JSON feed via the backend).
-  //readings stays null until the FIRST successful fetch ever happens.
+  //sensor readings
   const [readings, setReadings] = useState(null);
   const [readingsError, setReadingsError] = useState(null);
 
-  //a failed Delete shows its own banner instead of using cropsError, which
-  //would replace the whole dashboard with a full-page error screen
+  //failed delete shows its own banner
   const [deleteError, setDeleteError] = useState(null);
 
-  //lastRefresh is plain React state - never sent to or read from the backend
+  //edit and view sensor history
+  const [singleCropLoading, setSingleCropLoading] = useState(false);
+  const [singleCropError, setSingleCropError] = useState(null);
+
+  //last sensor refresh timestap
   const [lastRefresh, setLastRefresh] = useState('Never');
 
-  //which part of the single page is showing right now
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'add' | 'edit' | 'history'
+  //which part of page is showing - 'dashboard', 'add' , 'edit', 'history'
+  const [view, setView] = useState('dashboard');
   const [activeCrop, setActiveCrop] = useState(null);
 
-  //loads the crop cards from the backend - used on first load and for Retry
+  //load crop cards (first load and retry)
   function loadCrops() {
     setCropsLoading(true);
     setCropsError(null);
@@ -43,7 +47,8 @@ function App() {
       });
   }
 
-  //initial load - fires both requests together, once
+  //initial load fires both requests together
+  //crop cards can load even if the sensor readings fail and vice versa
   useEffect(() => {
     loadCrops();
 
@@ -54,14 +59,12 @@ function App() {
         setReadingsError(null);
       })
       .catch(err => {
-        //first sensor request failed - readings stays null on purpose, so
-        //calculateFarmStatus reports Sensor Feed Unavailable
         setReadingsError(err.message);
       });
   }, []);
 
-  //Refresh Sensor Data button - a LATER request, success replaces readings,
-  //failure must leave everything exactly as it was
+  //refresh sensor data button
+  //failure must leave everything as it was
   function handleRefresh() {
     getReadings()
       .then(data => {
@@ -71,7 +74,6 @@ function App() {
       })
       .catch(err => {
         setReadingsError(err.message);
-        //do NOT touch readings or lastRefresh here - the previous good state must survive
       });
   }
 
@@ -79,16 +81,39 @@ function App() {
     setView('add');
   }
 
+  //edit card by id
   function handleEdit(crop) {
-    setActiveCrop(crop);
-    setView('edit');
+    setSingleCropError(null);
+    setSingleCropLoading(true);
+    getCrop(crop.id)
+      .then(data => {
+        setActiveCrop(data);
+        setView('edit');
+        setSingleCropLoading(false);
+      })
+      .catch(err => {
+        setSingleCropError(err.message);
+        setSingleCropLoading(false);
+      });
   }
 
+  //fetch card by id
   function handleViewHistory(crop) {
-    setActiveCrop(crop);
-    setView('history');
+    setSingleCropError(null);
+    setSingleCropLoading(true);
+    getCrop(crop.id)
+      .then(data => {
+        setActiveCrop(data);
+        setView('history');
+        setSingleCropLoading(false);
+      })
+      .catch(err => {
+        setSingleCropError(err.message);
+        setSingleCropLoading(false);
+      });
   }
 
+  //delete card by id
   function handleDelete(crop) {
     setDeleteError(null);
     deleteCrop(crop.id)
@@ -102,35 +127,30 @@ function App() {
     setView('dashboard');
     setActiveCrop(null);
   }
-
   function handleCancelForm() {
     setView('dashboard');
     setActiveCrop(null);
   }
-
   function handleCloseHistory() {
     setView('dashboard');
     setActiveCrop(null);
   }
 
-  //build the dashboard results directly in the render body (no extra state) -
-  //this app's data is tiny, recalculating on every render keeps the logic simple
+  //build dashboard
   const results = crops.map(crop => {
     if (readings === null) return null;
     const reading = getLatestReading(crop.crop_name, readings);
-    //a structurally valid sensor file always has 5 readings per allowed crop,
-    //so this should never actually be null - but don't crash if it somehow is
+
     return reading ? analyseCrop(crop, reading) : null;
   });
 
   const farmStatus = calculateFarmStatus(crops, readings, results.filter(r => r !== null));
   const availableCropNames = getAvailableCropNames(readings, crops);
 
-  //true only until the first GET /api/readings has settled, success or failure -
-  //derived instead of tracked separately, since readings/readingsError already say this
+  //gates sensor refresh button util first GET succeeds or fails
   const readingsLoading = readings === null && readingsError === null;
 
-  //don't show cards or forms until the crop cards have loaded successfully
+  //don't show cards or forms until the crop cards load
   if (cropsLoading) {
     return <p>Loading crop cards...</p>;
   }
@@ -158,6 +178,7 @@ function App() {
 
       {readingsError && <p className="error-banner">Sensor refresh failed: {readingsError}</p>}
       {deleteError && <p className="error-banner">Delete failed: {deleteError}</p>}
+      {singleCropError && <p className="error-banner">Could not load crop card: {singleCropError}</p>}
 
       {view === 'dashboard' && (
         crops.length === 0 ? (

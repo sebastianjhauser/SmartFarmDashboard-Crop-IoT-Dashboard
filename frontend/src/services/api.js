@@ -1,6 +1,4 @@
-//every fetch() call for the app lives in this one file.
-//each function: fetch, check res.ok, throw a plain Error with the backend's
-//message on failure, otherwise return the parsed JSON.
+//all fetch calls for app
 
 async function handleResponse(res) {
   const data = await res.json();
@@ -12,6 +10,11 @@ async function handleResponse(res) {
 
 export async function getCrops() {
   const res = await fetch('/api/crops');
+  return handleResponse(res);
+}
+
+export async function getCrop(id) {
+  const res = await fetch(`/api/crops/${id}`);
   return handleResponse(res);
 }
 

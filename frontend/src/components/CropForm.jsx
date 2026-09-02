@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { createCrop, updateCrop } from '../services/api.js';
 
-//one combined Add / Edit form - avoids duplicating the same fields and
-//validation logic across two separate components.
+//combined add & edit form
 
 function blankForm(availableCropNames) {
   return {
@@ -19,9 +18,9 @@ function formFromCrop(crop) {
   return {
     crop_name: crop.crop_name,
     location: crop.location,
-    target_min: crop.target_min,
-    target_max: crop.target_max,
-    normal_water: crop.normal_water,
+    target_min: String(crop.target_min),
+    target_max: String(crop.target_max),
+    normal_water: String(crop.normal_water),
     notes: crop.notes ?? '',
   };
 }
@@ -38,10 +37,7 @@ function CropForm({ mode, cropToEdit, availableCropNames, onSaved, onCancel }) {
     setForm(prev => ({ ...prev, [name]: value }));
   }
 
-  //mirrors the backend's rules and messages exactly, so the user gets the same
-  //feedback here as they would from the API. Reads the raw string fields
-  //(not yet converted to numbers) so a blank field is caught as "required"
-  //instead of silently becoming 0.
+  //same as backend rules and messages
   function validate(form) {
     if (form.location.trim().length < 1 || form.location.length > 100) {
       return 'location is required';
@@ -91,8 +87,7 @@ function CropForm({ mode, cropToEdit, availableCropNames, onSaved, onCancel }) {
       return;
     }
 
-    //convert the number fields from strings (what inputs give us) to real numbers -
-    //the backend rejects numeric strings
+    //convert number field string to number
     const body = {
       crop_name: form.crop_name,
       location: form.location,

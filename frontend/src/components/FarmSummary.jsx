@@ -1,5 +1,4 @@
-//top summary bar: title, Overall Farm Status, crop count, last refresh time,
-//and the Add / Refresh buttons. Purely props in, events out - no fetching here.
+//title, farm status, card count, add & refresh button
 
 function formatLastRefresh(lastRefresh) {
   if (lastRefresh === 'Never') return 'Never';

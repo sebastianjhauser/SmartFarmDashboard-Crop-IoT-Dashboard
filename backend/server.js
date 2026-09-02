@@ -1,19 +1,28 @@
 const express = require('express');
-require('./db'); //loads db.js so the table is created/seeded as soon as the server starts
+require('./db'); //load db on server start
 
 const cropRoutes = require('./routes/crops');
 const readingRoutes = require('./routes/readings');
 
 const app = express();
 
-//allow parsing of JSON in requests
+//allow json in requests
 app.use(express.json());
 
-//mount the crop card routes at /api/crops
+//mount crop card route
 app.use('/api/crops', cropRoutes);
 
-//mount the read-only sensor readings route at /api/readings
+//read-only sensor readings
 app.use('/api/readings', readingRoutes);
+
+//catch bad json body, unknown routes, thrown errors, etc
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(400).json({ error: 'Invalid request' });
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

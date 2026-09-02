@@ -1,9 +1,6 @@
 import { formatWater } from '../utils/analysis.js';
 
-//one dashboard card. `result` is the object analyseCrop() already produced for
-//this crop (or null if there's no sensor data available yet) - this
-//component never calls analyseCrop itself, so every card and Sensor History
-//always agree with each other.
+//single dashboard card
 
 function CropCard({ crop, result, onEdit, onDelete, onViewHistory }) {
   function handleDelete() {
@@ -24,14 +21,13 @@ function CropCard({ crop, result, onEdit, onDelete, onViewHistory }) {
       {result ? (
         <>
           <p>Latest: {result.latest_reading.timestamp}</p>
-          <p>
-            Moisture: {result.latest_reading.soil_moisture}% &nbsp;
-            Temperature: {result.latest_reading.temperature}C &nbsp;
-            Rainfall: {result.latest_reading.rainfall}mm
+          <p className="reading-values">
+            <span>Moisture: {result.latest_reading.soil_moisture}%</span>
+            <span>Temperature: {result.latest_reading.temperature}C</span>
+            <span>Rainfall: {result.latest_reading.rainfall}mm</span>
           </p>
           <p>
-            Condition: {result.condition}
-            &nbsp; Recommended: {formatWater(result.recommended_water)}
+            Condition: {result.condition} - Recommended: {formatWater(result.recommended_water)}
           </p>
           {result.alerts.length > 0 && <p>Alert: {result.alerts.join(', ')}</p>}
           <p>Action: {result.action}</p>

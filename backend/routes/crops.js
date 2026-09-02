@@ -1,26 +1,23 @@
-//validation and CRUD routes for Crop Cards (the ONLY thing this route file
-//touches is the SQLite crops table - sensor readings are read-only and
-//never written to from here).
-
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { readAndValidateReadings } = require('../validateReadings');
 
-//every route below hits this on an unexpected DB/file failure - one place to
-//log it and send the same generic error the API contract requires
+//GET/POST/PUT/DELETE and validation for crop cards
+
+
 function sendServerError(res, err) {
   console.error(err);
   res.status(500).json({ error: 'Internal server error' });
 }
 
-//checks the fields that are the same for Create and Edit: location,
-//target_min, target_max, normal_water, notes. Returns the FIRST problem found
-//as a plain string, or null if everything is fine - the API only ever
-//shows one error message at a time.
+//validation rules only for crop card
 function validateSharedFields(body) {
-  if (typeof body.location !== 'string' || body.location.trim().length < 1 || body.location.length > 100) {
-    return 'location is required';
+  if (typeof body.location !== 'string' || body.location.trim().length < 1) {
+     return 'location is required';
+  }
+  if (body.location.length > 100) {
+     return 'location must be at most 100 characters';
   }
 
   if (typeof body.target_min !== 'number' || Number.isNaN(body.target_min)) {
@@ -57,19 +54,18 @@ function validateSharedFields(body) {
   return null;
 }
 
-//builds the values object that gets passed straight into the SQL statements,
-//filling in defaults the same way for Create and Edit
+//build object for SQL statements
 function buildCropValues(body) {
   return {
     location: body.location.trim(),
     target_min: body.target_min,
     target_max: body.target_max,
     normal_water: body.normal_water,
-    notes: body.notes ?? '',
+    notes: body.notes ?? ''
   };
 }
 
-//GET - all crop cards
+//GET (all crop cards)
 router.get('/', function (req, res) {
   try {
     const rows = db.prepare('SELECT * FROM crops ORDER BY id').all();
@@ -79,8 +75,7 @@ router.get('/', function (req, res) {
   }
 });
 
-//GET - one crop card by id. The frontend doesn't call this (Edit already has
-//the crop card in memory), but it's part of the required API.
+//GET (one card)
 router.get('/:id', function (req, res) {
   try {
     const row = db.prepare('SELECT * FROM crops WHERE id = ?').get(req.params.id);
@@ -93,14 +88,12 @@ router.get('/:id', function (req, res) {
   }
 });
 
-//POST - create a crop card
+//POST (create card)
 router.post('/', function (req, res) {
   try {
     const body = req.body || {};
 
-    //crop_name must exactly match a name found in a structurally valid
-    //sensor feed. Re-read and re-validate the file here rather than trusting
-    //whatever the frontend dropdown sent.
+    //crop name must be exact match from sensor
     const readingsResult = readAndValidateReadings();
     if (!readingsResult.valid) {
       return res.status(500).json({ error: 'Sensor data file is invalid' });
@@ -141,7 +134,7 @@ router.post('/', function (req, res) {
   }
 });
 
-//PUT - update an existing crop card. crop_name can never change.
+//PUT (update card)
 router.put('/:id', function (req, res) {
   try {
     const existing = db.prepare('SELECT * FROM crops WHERE id = ?').get(req.params.id);
@@ -151,7 +144,7 @@ router.put('/:id', function (req, res) {
 
     const body = req.body || {};
 
-    //crop_name may be omitted or sent unchanged - a DIFFERENT value is rejected
+    //different crop name is rejected
     if (body.crop_name !== undefined && body.crop_name !== null && body.crop_name !== existing.crop_name) {
       return res.status(400).json({ error: 'crop_name cannot be changed' });
     }
@@ -181,7 +174,7 @@ router.put('/:id', function (req, res) {
   }
 });
 
-//DELETE - removes only the crop card. The sensor JSON file is never touched.
+//DELETE (remove card)
 router.delete('/:id', function (req, res) {
   try {
     const result = db.prepare('DELETE FROM crops WHERE id = ?').run(req.params.id);

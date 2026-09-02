@@ -1,11 +1,9 @@
-//set up database connection and create the crops table
 const path = require('path');
 const Database = require('better-sqlite3');
 
 const db = new Database(path.join(__dirname, 'crops.db'));
 
-//crops table - this is the ONLY table this project uses.
-//sensor readings live in data/sensor-readings.json instead, never in SQLite.
+//crops table
 db.exec(`
   CREATE TABLE IF NOT EXISTS crops (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,9 +18,7 @@ db.exec(`
   )
 `);
 
-//only seed if the table is completely empty, so restarting the server
-//never creates duplicate rows. Maize is deliberately not seeded here -
-//it gets added later through the UI's Create form.
+//if table is empty seed with example crops (exclude maize to show in ui)
 const row = db.prepare('SELECT COUNT(*) AS count FROM crops').get();
 
 if (row.count === 0) {
@@ -36,7 +32,6 @@ if (row.count === 0) {
     { crop_name: 'Lettuce', location: 'Greenhouse B', target_min: 60, target_max: 80, normal_water: 400 },
     { crop_name: 'Wheat', location: 'North Field', target_min: 35, target_max: 55, normal_water: 300 },
   ];
-
   for (const crop of seedCrops) {
     insertSeed.run(crop);
   }

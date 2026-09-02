@@ -105,25 +105,53 @@ Every object must contain exactly these fields: crop_name, timestamp, soil_moist
 temperature, rainfall, sensor_status, notes.
 
 Use timestamps in YYYY-MM-DDTHH:mm:ss format. Timestamps must be distinct within each
-crop. The same timestamp may be used by different crops. Mix the array order so the
-latest reading is not always the last object.
+crop. The same timestamp may be used by different crops.
 
-Use sensor_status only as Online, Offline or Faulty. Most numeric values must be
-realistic: soil_moisture 0-100, temperature 0-50, rainfall 0-50. Include exactly one
-structurally valid older reading with one deliberately out-of-range numeric value.
-That invalid reading must not be the latest reading for its crop.
+For every one of the four crops, the reading with the latest timestamp must NOT be
+the last occurrence of that crop_name in the array — interleave crops throughout the
+array rather than grouping them.
 
-Make the latest readings produce these cases with the default Crop Card settings:
-- latest Tomato: Online, Dry, temperature above 35 C;
-- latest Lettuce: Online and Healthy;
-- latest Wheat: Online, Too Wet, rainfall at least 5 mm;
-- latest Maize: sensor_status Faulty.
+Use sensor_status only as Online, Offline or Faulty. Numeric values must be realistic
+(soil_moisture 0-100, temperature 0-50, rainfall 0-50) for every reading EXCEPT one.
+
+Include exactly one structurally valid older reading (not the latest for its crop)
+with sensor_status Online and exactly one numeric field outside its business range.
+It must be Online specifically — an Offline or Faulty reading with a bad number does
+not count, since sensor_status is checked first and would mask the out-of-range value.
+
+Make the latest readings produce these cases using these target ranges:
+Tomato 55-75, Lettuce 60-80, Wheat 35-55, Maize 50-70 (soil_moisture, inclusive):
+- latest Tomato: sensor_status Online, soil_moisture below 55, temperature above 35C
+- latest Lettuce: sensor_status Online, soil_moisture between 60 and 80 inclusive
+- latest Wheat: sensor_status Online, soil_moisture above 55, rainfall at least 5mm
+- latest Maize: sensor_status Faulty
+
+Do not reuse the specific numeric values from any previously published SmartFarm
+worked examples — generate distinct values that satisfy the same conditions.
+
 Return only the JSON array. Do not use Markdown or explanation.
 ```
 
 ## Checks/Corrections Made to the Sensor JSON
 
-I Checked the whole file for 20 objects, 5 per crop, correct fields/types, all timestamps distinct within their crop, exactly one out-of-range reading (Wheat, `soil_moisture: 120`, not the latest Wheat reading).
+Checked:
+
+- Exactly 20 objects
+- Exactly 5 readings per crop
+- Every object has all 7 required fields with correct types
+- Every timestamp matches `YYYY-MM-DDTHH:mm:ss`, is a real calendar date and is distinct within its crop
+- `sensor_status` is one of Online, Offline, or Faulty
+- The timestamp with the oldest value is not the last entry to confirm order is mixed
+- Exactly one older reading is valid but has one out-of-range number, and it is Online
+- etc.
+
+Corrections Made:
+
+I didn't alter any thing in the actual Sensor JSON as I altered the inital prompt used to genreate Sensor JSON. Changes to the prompt:
+
+- Added that the out-of-range reading must be Online, not Offline/Faulty, otherwise it displays as Sensor Problem instead of Invalid Data.
+- Added the exact target moisture ranges per crop so the AI knows what counts as Dry/Healthy/Too Wet.
+- Changed "mix the array order" to a precise rule: each crop's latest reading must not be its last occurrence in the array.
 
 ## AI Use
 
@@ -134,7 +162,7 @@ I Checked the whole file for 20 objects, 5 per crop, correct fields/types, all t
 Claude was utilised in collaboration throughout all stages of development such as:
 - Explaining concepts.
 - Review of code and core logic.
-- Architecture and file structure (e.g. splitting functionality specialised files ).
+- Architecture and file structure (e.g. splitting functionality specialised files and folders).
 - General syntax and formating.
 - Project set up, starter code, refactoring, and debugging code.
 - Backend and frontend guidance.
@@ -157,9 +185,25 @@ Claude was utilised in collaboration throughout all stages of development such a
 - Verified API error responses using `curl`              ###required JSON shape and messages with, including the 500 case by feeding it a deliberately corrupted sensor file###.
 
 
-### One decision I made
+### Decisions I made
 
-A decision I made was having the calculateFarmStatus function take three arguments (crops, readings, results) instead of the suggested one. The reason I did this is because "No Crops" and "Sensor Feed Unavailable" cannot be told apart from a results array alone, as both cases produce an empty array. To be able to tell the difference between the two cases I needed the raw crop count and the readings state, so I added them as parameters instead of having it calculated in App.jsx. This is because farm-status logic needs to live in a single place (calculateFarmStatus), per the specifications.
+I chose to split functionality across the following files instead of putting everything directly in `server.js` and `App.jsx`.
+
+Files:
+
+- `backend/routes/crops.js`
+- `backend/routes/readings.js`
+- `frontend/src/components/CropCard.jsx`
+- `frontend/src/components/CropForm.jsx`
+- `frontend/src/components/FarmSummary.jsx`
+- `frontend/src/components/SensorHistory.jsx`
+
+I decided to do this for readability and to ensure each responsibility lives in one place rather than a single large `server.js` or `App.jsx` holding routes, UI, and
+logic all at once.
+
+I also added two parameters to `calculateFarmStatus`instead of the suggested one to ensure "No Crops" and "Sensor Feed Unavailable" errors surface correctly.
+
+Lastly, I created `validateReadings.js` for structural validation of sensor readings as both `routes/readings.js` and `routes/crops.js` require the same checks to confirm a crop name exists before creating a card.
 
 ## One Project Limitation
 
