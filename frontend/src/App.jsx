@@ -22,7 +22,6 @@ function App() {
   const [deleteError, setDeleteError] = useState(null);
 
   //edit and view sensor history
-  const [singleCropLoading, setSingleCropLoading] = useState(false);
   const [singleCropError, setSingleCropError] = useState(null);
 
   //last sensor refresh timestap
@@ -84,32 +83,26 @@ function App() {
   //edit card by id
   function handleEdit(crop) {
     setSingleCropError(null);
-    setSingleCropLoading(true);
     getCrop(crop.id)
       .then(data => {
         setActiveCrop(data);
         setView('edit');
-        setSingleCropLoading(false);
       })
       .catch(err => {
         setSingleCropError(err.message);
-        setSingleCropLoading(false);
       });
   }
 
   //fetch card by id
   function handleViewHistory(crop) {
     setSingleCropError(null);
-    setSingleCropLoading(true);
     getCrop(crop.id)
       .then(data => {
         setActiveCrop(data);
         setView('history');
-        setSingleCropLoading(false);
       })
       .catch(err => {
         setSingleCropError(err.message);
-        setSingleCropLoading(false);
       });
   }
 
